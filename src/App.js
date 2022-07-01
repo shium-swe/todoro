@@ -75,6 +75,8 @@ function App() {
                     id="todo__input"
                     variant="filled"
                     placeholder="'Clean room'"
+                    autoComplete="off"
+                    autoFocus
                     size="lg"
                     type="text"
                     value={defaultText}
