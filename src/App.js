@@ -8,6 +8,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  IconButton,
   VStack,
   HStack,
   List,
@@ -15,23 +16,48 @@ import {
   Button,
   Checkbox,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+    const existingTodos = localStorage.getItem("todos");
+    if (existingTodos) {
+      return JSON.parse(existingTodos);
+    } else {
+      return [];
+    }
+  });
   const [defaultText, setDefaultText] = useState("");
   const todoText = useRef();
 
   useEffect(() => {
-    const existingTodos = localStorage.getItem("todos");
-    setTodos(existingTodos ? JSON.parse(existingTodos) : []);
-  }, []);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const nextTodos = [...todos, todoText.current.value];
-    setTodos(nextTodos);
     localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (defaultText !== "") {
+      setTodos([
+        ...todos,
+        {
+          id: todos.length + 1,
+          text: defaultText.trim(),
+        },
+      ]);
+    }
     setDefaultText("");
+  };
+
+  const handleInputChange = (e) => {
+    setDefaultText(e.target.value);
+  };
+
+  const handleDelete = (id) => {
+    const filteredArray = todos.filter((todo) => {
+      return todo.id !== id;
+    });
+    setTodos(filteredArray);
   };
 
   return (
@@ -52,7 +78,7 @@ function App() {
                     size="lg"
                     type="text"
                     value={defaultText}
-                    onChange={(event) => setDefaultText(event.target.value)}
+                    onChange={handleInputChange}
                     ref={todoText}
                   />
                   <InputRightElement width="8rem" mt={1} padding={2}>
@@ -69,7 +95,7 @@ function App() {
         <List spacing={3}>
           {todos.map((todo) => (
             <ListItem
-              key={todo}
+              key={todo.id}
               _hover={{
                 bgColor: "gray.100",
                 transition: "all 300ms ease",
@@ -84,8 +110,20 @@ function App() {
                   colorScheme="green"
                   spacing="1.5rem"
                 >
-                  <Text fontSize="2xl">{todo}</Text>
+                  <Text fontSize="2xl">{todo.text}</Text>
                 </Checkbox>
+                <IconButton
+                  aria-label="Remove todo"
+                  icon={<DeleteIcon />}
+                  _hover={{
+                    color: "red",
+                  }}
+                  color="blackAlpha.500"
+                  bgColor="transparent"
+                  size="lg"
+                  ml={3}
+                  onClick={() => handleDelete(todo.id)}
+                />
               </HStack>
             </ListItem>
           ))}
